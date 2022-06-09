@@ -3,7 +3,7 @@ import path from 'path'
 import dotenv from 'dotenv'
 
 dotenv.config()
-const port: string = $PORT || process.env.PORT || '8080';
+const port: string = process.env.PORT || '8080';
 const app: Express = express()
 
 app.use(express.json())
@@ -15,6 +15,6 @@ app.get('*', (req: Request, res: Response) => {
     res.send('Hi from express server root - index.ts')
 })
 
-app.listen(port, () => {
+app.listen(port, () => { 
     console.log(`--- express listening on port ${port} ---`)
 })
