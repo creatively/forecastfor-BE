@@ -1,20 +1,33 @@
-import express, { Express, Request, Response } from 'express'
-import path from 'path'
-import dotenv from 'dotenv'
+import { Request, Response, Application } from 'express';
+import express = require('express');
+import bodyParser from 'body-parser';
+import { ApolloServer } from "apollo-server-express";
+import { buildSchema, createResolversMap } from "type-graphql";
+import { HelloResolver } from './resolvers/hello'
 
-dotenv.config()
-const port: string = process.env.PORT || '8080';
-const app: Express = express()
+const main = async () => {
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(express.static(path.join(__dirname, '/src')))
+    const app: Application = express();
+    const port = 8080; // default port to listen
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: false }));
+
+    const apolloServer = new ApolloServer({
+        schema: await buildSchema({
+            resolvers: [ HelloResolver ],
+            validate: false,
+        }),
+        context: ({ req, res }) => ({ req, res }),
+    });
 
 
-app.get('*', (req: Request, res: Response) => {
-    res.send('Hi from express server root - index.ts')
-})
+    // start the Express server
+    app.listen( port, () => {
+        console.log( `server started at http://localhost:${ port }` );
+    } );
+}
 
-app.listen(port, () => { 
-    console.log(`--- express listening on port ${port} ---`)
-})
+main().catch((err) => {
+    // tslint:disable-next-line: no-console
+    console.error(err);
+});
