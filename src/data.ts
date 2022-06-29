@@ -1,134 +1,123 @@
-import { dataIn } from '../../forecastfor-FE/src/mock-api/weather-data';
-import { iForecastData, iForecastDay, iForecastThreeHourlyColumn } from '../../forecastfor-FE/src/interfaces/forecastInterface';
+import { apiData } from '../../forecastfor-FE/src/mock-api/apiData';
+import { Data3Hrs, DataDay } from '../../forecastfor-FE/src/interfaces/forecastInterface';
 
 
-let data2 = [];
+// DATA PROCESSING UTILS
+function switchCase(conditions: any, val: number): any {
+    for (var type in conditions) {
+        if (conditions[type](val)) return type
+    }
+}
 
-console.log(data1.code)
+function getPrecipitationType(id: number) {
+    
+    const conditions = {
+        'light rain':   (val: number) => (val === 300 || val === 310 || val === 500),
+        'rain':         (val: number) => (val > 299 && val <322 || val === 501),
+        'heavy rain':   (val: number) => (val > 501 && val < 505),
+        'light showers':(val: number) => (val === 520),
+        'showers':      (val: number) => (val === 521),
+        'heavy showers':(val: number) => (val === 522 || val === 531),
+        'sleet':        (val: number) => (val > 610 && val < 617),
+        'snow':         (val: number) => (val > 599 && val < 603),
+        'snow showers': (val: number) => (val > 619 && val < 623),
+        'thunderstorm': (val: number) => (val > 199 && val < 233 || val === 771 || val === 781),
+        'mist':         (val: number) => (val > 700 && val < 763),
+        'dry':          () => true
+    }
+
+    return switchCase(conditions, id)
+}
+
+function getDaylightConditions(dateTimeString: string) {
+    const hour: number = new Date(dateTimeString).getHours()
+    const conditions = {
+        'no':       (hour: number) => (hour === 0 || hour === 3 || hour === 21),
+        'partly':   (hour: number) => (hour === 6 || hour === 18),
+        'yes':      () => true
+    }
+
+    return switchCase(conditions, hour)
+}
+
+function getShortDayName(dateString: string): string {
+    const newDate: Date = new Date(dateString)
+    const shortDayName = newDate.toLocaleDateString('en-us', {weekday:'short'})
+    return shortDayName
+}
+
+function getShortDayNameByIndex(dayNumber: number): string {
+    const today: Date = new Date()
+    const todayDate: Date = new Date(today)
+    const nextDate: Date = new Date(todayDate.setDate(todayDate.getDate() + dayNumber))
+    return getShortDayName(nextDate.toString())
+}
+
+function getArrayOfADays3hrs(data3Hrs: Data3Hrs[], dayShortName: string) {
+    return data3Hrs.filter((data3Hr: Data3Hrs) => data3Hr.dayName === dayShortName)
+}
 
 
-function makeForecastDays() {
-    dataIn.forEach(function (dataIn3hrBlock) {
-        dataIn3hrBlock.
+// MAIN DATA PROCESSING FUNCTIONS
 
+function getCleanedData3Hrs(apiData: any): Data3Hrs[] {
+    let data3Hrs: Data3Hrs[] = [];
+
+    apiData.list.forEach((apiData3Hrs: any) => {
+        
+        const dateTimeString: string = apiData3Hrs.dt_txt
+        const precipitationCode: number = apiData3Hrs.weather[0].id
+        let obj: Data3Hrs = {
+            "daylight": getDaylightConditions(dateTimeString),
+            "precipitation": getPrecipitationType(precipitationCode),
+            "clouds": apiData3Hrs.clouds.all,
+            "dayName": getShortDayName(dateTimeString),
+            "tempMax": apiData3Hrs.main.temp_max
+        }
+        data3Hrs.push(obj)
     })
+
+    return data3Hrs
 }
 
-    function makeForecastDay(dayName, tempMax, ForecastDay) {
+function get5DaysOfDataFrom3HrsData(data3Hrs: Data3Hrs[]) {
+    let daysData: DataDay[] = []
 
-    }
-
-        function getDaysDayName() {
-            
+    for (let dayNumber = 0; dayNumber < 5; dayNumber++) {
+        const dayName: string = getShortDayNameByIndex(dayNumber)
+        const dataDay3hrs: Data3Hrs[] = getArrayOfADays3hrs(data3Hrs, dayName)
+        const tempMax: number = Math.max(...(dataDay3hrs.map(({ tempMax }) => tempMax)))
+        const day: DataDay = {
+            dayName: dayName,
+            forecastThreeHrsColumns: dataDay3hrs,
+            tempMax : tempMax
         }
-
-        function getDaysMaxTemp() {
-            
-        }
-
-        function makeForecastThreeHourlyColumn() {
-                
-        }
-
-            function makeForecastThreeHourlyColumn() {
-                
-            }
-                function getDaylight() {
-                    
-                }
-
-                function getPrecipitation() {
-                            
-                }
-
-                function getClouds() {
-                                
-                }
-
-dataOut = getForecastDays();
-
-
-// util functions
-function getShortDayName(dateString: string) {
-    return new Date(dateString).toLocaleDateString('en-us', {weekday:'short'})
+        daysData.push(day)
+    }
+    return daysData
 }
 
-function getPrecipitationType(id) {
 
-    const ids = {
-        'light rain':   (id: number) => (id === 300 || id === 310 || id === 500),
-        'rain':         (id: number) => (id > 299 && id <322 || id === 501),
-        'heavy rain':   (id: number) => (id > 501 && id < 505),
-        'light showers':(id: number) => (id === 520),
-        'showers':      (id: number) => (id === 521),
-        'heavy showers':(id: number) => (id === 522 || id === 531),
-        'sleet':        (id: number) => (id > 610 && id < 617),
-        'snow':         (id: number) => (id > 599 && id < 603),
-        'snow showers': (id: number) => (id > 619 && id < 623),
-        'thunderstorm': (id: number) => (id > 199 && id < 233 || id === 771 || id === 781),
-        'mist':         (id: number) => (id > 700 && id < 763),
-        'dry':          (id: number) => (id === id)
-    }
-
-    for (var type: string in ids) {
-        if (ids[type](id)) return type
-    }
-}
-
-function getDaylightStatus(dateTimeString: string) {
-    const hour = new Date(dateTimeString).getHours()
-    switch (hour) {
-        case 6: case 18:
-            return 'partly'
-            break;
-        case 0: case 3: case 21:
-            return 'no'
-            break;
-        default:
-            return 'yes'
-    }
-}
-
+// MAIN CODE
+ 
+const cleanedData3Hrs = getCleanedData3Hrs(apiData)
+const dataFor5Days = get5DaysOfDataFrom3HrsData(cleanedData3Hrs)
+console.log(dataFor5Days)
 
 
 
 /*
-
-const d2 = "forecastDays": [
-                {
-                    "dayName": "Mon",
-                    "tempMax": 20,
-                    "forecastThreeHourlyColumns": [
-                        {
-                            "daylight": "daylight-yes",
-                            "precipitation": "dry",
-                            "clouds": 85
-                        }
-
-
-
-
-
-    let dayMaxSoFar = 0;
-    let d2.dayNumber = 0;
-
-    d1.3hrs.forEach((d1.3hrs, index) => {
-        do {
-            if (d1.3hrs.main.temp_max > dayMaxSoFar) {
-                dayMaxSoFar = d1.3hrs.main.temp_max;
+const d2 = \
+"forecastDays": [
+    {
+        "dayName": "Mon",
+        "tempMax": 20,
+        "forecastThreeHourlyColumns": [
+            {
+                "daylight": "daylight-yes",
+                "precipitation": "dry",
+                "clouds": 85
             }
-
-            = getDescription = (d1.3hrs.weatherdescription)
-            = d1.3hrs.clouds.all
-        } while (d1.3hrs[index].time !== '00:00:00')
-
-        d2.tempMax = dayMaxSoFar;
-        d2.dayName = 
-
-        d2.dayNumber++;
-        dayMaxSoFar = 0;
-    })
-
 
 const data1 =
     {
@@ -174,20 +163,4 @@ const data1 =
             }
         ]
     }
-
-
-    // Loop through all d1 3hr objects
-        // add data to all d2 3hr object
-
-let d2ThreeHrs = [];
-
-data1.list.forEach((threeHrs) => {
-    let obj = {}
-    const dateTimeString = threeHrs.dt_txt
-    obj.daylight = getDaylightStatus(dateTimeString)
-    obj.precipitation = getPrecipitationType(threeHrs.weather[0].id)
-    obj.clouds = threeHrs.clouds.all
-    obj.dayName = getShortDayName(dateTimeString)
-    obj.temp = threeHrs.main.temp_max
-    d2ThreeHrs.push(obj)
-})
+*/
