@@ -1,4 +1,3 @@
-//import { Request, Response, Application } from 'express';   // Next
 import express = require('express');
 import cors from 'cors'
 import bodyParser from 'body-parser';

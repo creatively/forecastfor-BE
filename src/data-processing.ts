@@ -65,7 +65,6 @@ function getArrayOfADays3hrs(data3Hrs: Data3Hrs[], dayShortName: string): Data3H
 
 function getCleanedData3Hrs(apiData: any): Data3Hrs[] {
     let data3Hrs: Data3Hrs[] = [];
-
     apiData.list.forEach((apiData3Hrs: any) => {
         
         const dateTimeString: string = apiData3Hrs.dt_txt
@@ -104,7 +103,7 @@ function get5DaysOfDataFrom3HrsData(data3Hrs: Data3Hrs[]) {
 
 // MAIN CODE
 export async function getProcessedForecast(apiData: any): Promise<DataDay[]> {
-
+console.log(apiData)
     const data3Hrs: Data3Hrs[] = getCleanedData3Hrs(apiData)
     const dataDays: DataDay[] = get5DaysOfDataFrom3HrsData(data3Hrs)
 
