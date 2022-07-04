@@ -1,5 +1,4 @@
-import { apiData } from '../../forecastfor-FE/src/mock-api/apiData';
-import { Data3Hrs, DataDay } from '../../forecastfor-FE/src/interfaces/forecastInterface';
+import { Data3Hrs, DataDay } from '../interfaces/ForecastInterfaces';
 
 
 // DATA PROCESSING UTILS
@@ -40,6 +39,10 @@ function getDaylightConditions(dateTimeString: string) {
     return switchCase(conditions, hour)
 }
 
+function convertToDegreesC(degreesKelvin: number): number {
+    return Math.round(degreesKelvin - 273.15)
+}
+
 function getShortDayName(dateString: string): string {
     const newDate: Date = new Date(dateString)
     const shortDayName = newDate.toLocaleDateString('en-us', {weekday:'short'})
@@ -53,7 +56,7 @@ function getShortDayNameByIndex(dayNumber: number): string {
     return getShortDayName(nextDate.toString())
 }
 
-function getArrayOfADays3hrs(data3Hrs: Data3Hrs[], dayShortName: string) {
+function getArrayOfADays3hrs(data3Hrs: Data3Hrs[], dayShortName: string): Data3Hrs[] {
     return data3Hrs.filter((data3Hr: Data3Hrs) => data3Hr.dayName === dayShortName)
 }
 
@@ -72,7 +75,7 @@ function getCleanedData3Hrs(apiData: any): Data3Hrs[] {
             "precipitation": getPrecipitationType(precipitationCode),
             "clouds": apiData3Hrs.clouds.all,
             "dayName": getShortDayName(dateTimeString),
-            "tempMax": apiData3Hrs.main.temp_max
+            "tempMax": convertToDegreesC(apiData3Hrs.main.temp_max)
         }
         data3Hrs.push(obj)
     })
@@ -89,78 +92,21 @@ function get5DaysOfDataFrom3HrsData(data3Hrs: Data3Hrs[]) {
         const tempMax: number = Math.max(...(dataDay3hrs.map(({ tempMax }) => tempMax)))
         const day: DataDay = {
             dayName: dayName,
-            forecastThreeHrsColumns: dataDay3hrs,
+            forecastThreeHourlyColumns: dataDay3hrs,
             tempMax : tempMax
         }
         daysData.push(day)
     }
+    
     return daysData
 }
 
 
 // MAIN CODE
- 
-const cleanedData3Hrs = getCleanedData3Hrs(apiData)
-const dataFor5Days = get5DaysOfDataFrom3HrsData(cleanedData3Hrs)
-console.log(dataFor5Days)
+export async function getProcessedForecast(apiData: any): Promise<DataDay[]> {
 
+    const data3Hrs: Data3Hrs[] = getCleanedData3Hrs(apiData)
+    const dataDays: DataDay[] = get5DaysOfDataFrom3HrsData(data3Hrs)
 
-
-/*
-const d2 = \
-"forecastDays": [
-    {
-        "dayName": "Mon",
-        "tempMax": 20,
-        "forecastThreeHourlyColumns": [
-            {
-                "daylight": "daylight-yes",
-                "precipitation": "dry",
-                "clouds": 85
-            }
-
-const data1 =
-    {
-        "cod": "200",
-        "message": 0,
-        "cnt": 40,
-        "list": [
-            {
-                "dt": 1647345600,
-                "main": {
-                    "temp": 286.88,
-                    "feels_like": 285.93,
-                    "temp_min": 286.74,
-                    "temp_max": 286.88,
-                    "pressure": 1021,
-                    "sea_level": 1021,
-                    "grnd_level": 1018,
-                    "humidity": 62,
-                    "temp_kf": 0.14
-                },
-                "weather": [
-                    {
-                        "id": 804,
-                        "main": "Clouds",
-                        "description": "overcast clouds",
-                        "icon": "04d"
-                    }
-                ],
-                "clouds": {
-                    "all": 85
-                },
-                "wind": {
-                    "speed": 3.25,
-                    "deg": 134,
-                    "gust": 4.45
-                },
-                "visibility": 10000,
-                "pop": 0,
-                "sys": {
-                    "pod": "d"
-                },
-                "dt_txt": "2022-03-15 12:00:00"
-            }
-        ]
-    }
-*/
+    return dataDays
+}

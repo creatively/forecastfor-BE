@@ -1,33 +1,27 @@
-import { Request, Response, Application } from 'express';
+//import { Request, Response, Application } from 'express';   // Next
 import express = require('express');
+import cors from 'cors'
 import bodyParser from 'body-parser';
-import { ApolloServer } from "apollo-server-express";
-import { buildSchema, createResolversMap } from "type-graphql";
-import { HelloResolver } from './resolvers/hello'
+import forecast from '../routes/forecast'
 
-const main = async () => {
+const app = express();
+const port: number | string = process.env.PORT || 8080;
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cors({
+        credentials: true,
+        origin: [
+            'http://localhost:8080',
+            'http://localhost:3000',
+            'http://forecastfor.com'
+        ]
+    }))
 
-    const app: Application = express();
-    const port = 8080; // default port to listen
-    app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({ extended: false }));
-
-    const apolloServer = new ApolloServer({
-        schema: await buildSchema({
-            resolvers: [ HelloResolver ],
-            validate: false,
-        }),
-        context: ({ req, res }) => ({ req, res }),
-    });
+// routes
+app.use('*', forecast)
 
 
-    // start the Express server
-    app.listen( port, () => {
-        console.log( `server started at http://localhost:${ port }` );
-    } );
-}
-
-main().catch((err) => {
-    // tslint:disable-next-line: no-console
-    console.error(err);
-});
+// start server
+app.listen( port, () => {
+    console.log( `server started at http://localhost:${ port }` );
+} );
