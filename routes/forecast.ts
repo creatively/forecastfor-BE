@@ -13,7 +13,7 @@ router.get('/', (req: Request, res: Response) => {
             const dataFor5Days = await getProcessedForecast(apiData)
             res.json(dataFor5Days)
         } else {
-            res.json({error: true})
+            res.json({apiCallFail: true})
         }
     })()
 })
