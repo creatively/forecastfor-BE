@@ -17,7 +17,7 @@ app.use(cors({
     }))
 
 // routes
-app.use('*', forecast)
+app.use('/forecast', forecast)
 
 
 // start server

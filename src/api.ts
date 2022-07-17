@@ -1,33 +1,49 @@
 import { DataDay } from '../interfaces/ForecastInterfaces'
-import axios from 'axios'
+import axios, { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from 'axios'
 import dotenv from 'dotenv'
 dotenv.config()
 
+interface PropsCoordinates {
+    latitude: string,
+    longitude: string
+}
+
 const key: string | undefined = process.env.OPENWEATHERMAP_KEY
-const lat: string = `51`
-const lon: string = `0`
 
-export async function getApiForecast(): Promise<DataDay[]> {
+export async function getApiForecast({latitude, longitude}: PropsCoordinates): Promise<DataDay[]> {
 
-// //api.openweathermap.org/geo/1.0/direct?q=London&limit=5&appid={API key}
-// //api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={API key}
+    const cleanOffApiKeyWhenNotInDevelopment = (url: string | undefined): string => {
+        return (process.env.ENVIRONMENT !== `dev`) 
+            ? url?.substring(0, url?.indexOf(`&appid=`)) || ``
+            : url || ``
+    }
 
-    //const apiUrl: string = `https://raw.githubusercontent.com/creatively/forecastfor-FE/main/src/mock-api/api-data.json`
-    const apiUrl: string = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${key}`
+    const apiUrl: string = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${key}`
+    const loggableUrl: string = cleanOffApiKeyWhenNotInDevelopment(apiUrl)
+    const requestConfig: AxiosRequestConfig = {
+        method: 'GET',
+        url: apiUrl
+    }
 
     return (async () => {
         try {
-            const response: any = await axios.get(apiUrl)
-            console.log(response)
+            const response: AxiosResponse = await axios(requestConfig)
             if (response.status === 200) {
                 return response.data
             } else {
-                throw `api call returned a status code of ${response.status}
-                        and a message of : ${response.statusText}`
+                console.log(`
+                    --- WEATHER API CALL ERROR - INCORRECT STATUS CODE - ${response.status} :\n
+                    --- weather api server called with :\n
+                    --- ${loggableUrl}\n
+                    --- and returned a response of :\n
+                    --- ${response.statusText}
+                `)
             }
         } catch (error) {
-            console.log('------ error ... -------')
-            console.error(error);
+            console.log(`
+                --- WEATHER API CALL ERROR :
+                --- ${loggableUrl}
+                --- ${error.message}`)
             return null
         }
     })()
