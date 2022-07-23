@@ -32,7 +32,7 @@ export async function getApiForecast({latitude, longitude}: PropsCoordinates): P
                 return response.data
             } else {
                 console.log(`
-                    --- WEATHER API CALL ERROR - INCORRECT STATUS CODE - ${response.status} :\n
+                    --- REMOTE WEATHER API CALL ERROR - INCORRECT STATUS CODE - ${response.status} :\n
                     --- weather api server called with :\n
                     --- ${loggableUrl}\n
                     --- and returned a response of :\n

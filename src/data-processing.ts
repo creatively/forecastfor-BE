@@ -103,7 +103,6 @@ function get5DaysOfDataFrom3HrsData(data3Hrs: Data3Hrs[]) {
 
 // MAIN CODE
 export async function getProcessedForecast(apiData: any): Promise<DataDay[]> {
-console.log(apiData)
     const data3Hrs: Data3Hrs[] = getCleanedData3Hrs(apiData)
     const dataDays: DataDay[] = get5DaysOfDataFrom3HrsData(data3Hrs)
 
